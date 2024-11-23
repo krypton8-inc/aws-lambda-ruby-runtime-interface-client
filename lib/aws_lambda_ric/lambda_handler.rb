@@ -13,27 +13,36 @@ class LambdaHandler
     elsif handler_split.size == 3
       @handler_file_name, @handler_class, @handler_method_name = handler_split
     else
-      raise ArgumentError.new("Invalid handler #{handler_split}, must be of form FILENAME.METHOD or FILENAME.CLASS.METHOD where FILENAME corresponds with an existing Ruby source file FILENAME.rb, CLASS is an optional module/class namespace and METHOD is a callable method. If using CLASS, METHOD must be a class-level method.")
+      raise ArgumentError.new(
+              "Invalid handler #{handler_split}, must be of form FILENAME.METHOD or FILENAME.CLASS.METHOD where FILENAME corresponds with an existing Ruby source file FILENAME.rb, CLASS is an optional module/class namespace and METHOD is a callable method. If using CLASS, METHOD must be a class-level method.",
+            )
     end
   end
 
   def call_handler(request:, context:)
-    opts = {
-        event: request,
-        context: context
-    }
+    opts = { event: request, context: context }
+
     if @handler_class
-      response = Kernel.const_get(@handler_class).send(@handler_method_name, **opts)
+      response =
+        Kernel.const_get(@handler_class).send(@handler_method_name, **opts)
     else
       response = __send__(@handler_method_name, **opts)
     end
-    # serialization can be a part of user code
-    AwsLambda::Marshaller.marshall_response(response)
+
+    if response.respond_to?(:each)
+      # Streaming response
+      content_type = 'text/event-stream' # Corrected content type
+      # Do not marshal the response
+    else
+      # Non-streaming response
+      response = AwsLambda::Marshaller.marshall_response(response)
+      content_type = 'application/json' # Default content type
+    end
+
+    [response, content_type]
   rescue NoMethodError => e
-    # This is a special case of standard error that we want to hard-fail for
     raise LambdaErrors::LambdaHandlerCriticalException.new(e)
   rescue NameError => e
-    # This is a special case error that we want to wrap
     raise LambdaErrors::LambdaHandlerCriticalException.new(e)
   rescue StandardError => e
     raise LambdaErrors::LambdaHandlerError.new(e)
