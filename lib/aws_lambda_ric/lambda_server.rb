@@ -60,6 +60,7 @@ class LambdaServer
       end
       headers = { 'User-Agent' => @user_agent, 'Content-Type' => content_type }
       if is_streaming_response?(response_object)
+        puts "Response Object: #{response_object}"
         headers['Lambda-Runtime-Function-Response-Mode'] = 'streaming'
         headers['Transfer-Encoding'] = 'chunked'
       end
