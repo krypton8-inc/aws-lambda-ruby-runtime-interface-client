@@ -29,7 +29,7 @@ class LambdaHandler
       response = __send__(@handler_method_name, **opts)
     end
 
-    if response.respond_to?(:each)
+    if is_streaming_response?(response)
       [response, 'text/event-stream']
     else
       AwsLambda::Marshaller.marshall_response(response)
@@ -42,5 +42,14 @@ class LambdaHandler
     raise LambdaErrors::LambdaHandlerError.new(e)
   rescue Exception => e
     raise LambdaErrors::LambdaHandlerCriticalException.new(e)
+  end
+
+  private
+
+  def is_streaming_response?(response)
+    return false unless response.is_a?(Hash) && response[:headers]
+    headers_normalized =
+      response[:headers].transform_keys { |k| k.to_s.downcase }
+    headers_normalized['x-lamby-streaming'] == '1'
   end
 end

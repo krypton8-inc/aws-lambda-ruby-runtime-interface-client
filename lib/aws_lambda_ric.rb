@@ -84,9 +84,6 @@ module AwsLambdaRuntimeInterfaceClient
 
       # end of user code
 
-      puts "Lambda response: #{handler_response}" # for debugging
-      puts "Lambda content type: #{content_type}" # for debugging
-
       @lambda_server.send_response(
         request_id: lambda_invocation_request.request_id,
         response_object: handler_response,
