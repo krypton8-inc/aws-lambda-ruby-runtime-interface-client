@@ -30,7 +30,7 @@ class LambdaHandler
     end
 
     if response.respond_to?(:each)
-      content_type = 'text/event-stream' # Corrected content type
+      content_type = 'text/event-stream'
       response, content_type
     else
       AwsLambda::Marshaller.marshall_response(response)
