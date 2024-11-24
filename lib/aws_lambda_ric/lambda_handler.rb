@@ -30,16 +30,11 @@ class LambdaHandler
     end
 
     if response.respond_to?(:each)
-      # Streaming response
       content_type = 'text/event-stream' # Corrected content type
-      # Do not marshal the response
+      response, content_type
     else
-      # Non-streaming response
-      response = AwsLambda::Marshaller.marshall_response(response)
-      content_type = 'application/json' # Default content type
+      AwsLambda::Marshaller.marshall_response(response)
     end
-
-    [response, content_type]
   rescue NoMethodError => e
     raise LambdaErrors::LambdaHandlerCriticalException.new(e)
   rescue NameError => e
