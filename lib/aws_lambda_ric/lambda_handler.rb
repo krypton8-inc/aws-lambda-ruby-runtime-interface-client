@@ -30,7 +30,7 @@ class LambdaHandler
     end
 
     if response.respond_to?(:each)
-      response, 'text/event-stream'
+      [response, 'text/event-stream']
     else
       AwsLambda::Marshaller.marshall_response(response)
     end
