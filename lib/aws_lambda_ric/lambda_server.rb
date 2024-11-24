@@ -53,6 +53,9 @@ class LambdaServer
     response_object:,
     content_type: 'application/json'
   )
+    puts "Sending response for request ID: #{request_id}"
+    puts "Response object: #{response_object}"
+    puts "Content type: #{content_type}"
     begin
       host = ENV['AWS_LAMBDA_RUNTIME_API']
       port = 443 # AWS Lambda Runtime API uses HTTPS
@@ -103,6 +106,8 @@ class LambdaServer
         ssl_socket.close
       end
     rescue StandardError => e
+      puts "Error sending response: #{e}"
+      puts "Backtrace: #{e.backtrace}"
       raise LambdaErrors::LambdaRuntimeError.new(e)
     end
   end
